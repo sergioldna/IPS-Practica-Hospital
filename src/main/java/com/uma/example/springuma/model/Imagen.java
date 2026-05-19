@@ -1,16 +1,24 @@
 package com.uma.example.springuma.model;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 
 @Entity
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // para ignorar el serializador al devolver un objeto cuenta
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Imagen {
 
     @Id
@@ -21,15 +29,8 @@ public class Imagen {
     private String nombre;
 
     @Column(name = "fecha")
-    private Calendar fecha;
+    private LocalDateTime fecha;
 
-    public Calendar getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Calendar fecha) {
-        this.fecha = fecha;
-    }
     // Relación con Paciente (muchas imágenes pueden pertenecer a un paciente)
     @ManyToOne()
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -38,21 +39,16 @@ public class Imagen {
 
     @Lob
     @Column(name = "file_content")
-    private byte[] file_content;
+    private byte[] fileContent;
 
-    public byte[] getFile_content() {
-        return file_content;
-    }
-
-    public void setFile_content(byte[] file_content) {
-        this.file_content = file_content;
-    }
-
-    // Constructor vacío
     public Imagen() {
     }
 
-    // Getters y Setters
+    public Imagen(byte[] fileContent, Paciente paciente) {
+        this.fileContent = fileContent;
+        this.paciente = paciente;
+    }
+
     public long getId() {
         return id;
     }
@@ -69,6 +65,14 @@ public class Imagen {
         this.nombre = nombre;
     }
 
+    public LocalDateTime getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDateTime fecha) {
+        this.fecha = fecha;
+    }
+
     public Paciente getPaciente() {
         return paciente;
     }
@@ -77,34 +81,29 @@ public class Imagen {
         this.paciente = paciente;
     }
 
+    public byte[] getFileContent() {
+        return fileContent;
+    }
+
+    public void setFileContent(byte[] fileContent) {
+        this.fileContent = fileContent;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Imagen)) {
-            return false;
-        }
-        return id != 0 && id == (((Imagen) o).getId());
+        if (this == o) return true;
+        if (!(o instanceof Imagen)) return false;
+        Imagen other = (Imagen) o;
+        return id != 0 && id == other.getId();
     }
 
     @Override
     public int hashCode() {
-        return this.nombre.hashCode();
+        return nombre != null ? nombre.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "Imagen{"
-                + "id=" + id
-                + ", nombre='" + nombre + '\''
-                + ", paciente=" + paciente
-                + '}';
+        return "Imagen{" + "id=" + id + ", nombre='" + nombre + '\'' + ", paciente=" + paciente + '}';
     }
-
-    public Imagen(byte[] file_content, Paciente paciente) {
-        this.file_content = file_content;
-        this.paciente = paciente;
-    }
-
 }
