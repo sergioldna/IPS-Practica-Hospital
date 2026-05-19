@@ -1,7 +1,8 @@
 # SpringUMA — Medical Records System
 
-[![Estado de CI/CD](https://github.com/sergioldna/P6-github-actions/actions/workflows/ci.yml/badge.svg)](https://github.com/sergioldna/P6-github-actions/actions/workflows/ci.yml)
 ![Cobertura Jacoco](.github/badges/jacoco.svg)
+
+CI/CD workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
 A Spring Boot REST API that models a small medical records system. Built as a practice project for the **Software Maintenance and Testing** course at the University of Málaga.
 
@@ -44,6 +45,9 @@ src/
 
 ---
 
+Jacoco HTML report is generated at `target/site/jacoco/index.html` after running `./mvnw verify`.
+
+
 ## Requirements
 
 | Tool  | Min version |
@@ -53,6 +57,35 @@ src/
 
 No external database required — H2 in-memory is used for tests.
 
+**Quick start**
+
+- Build and run with the included Maven wrapper (no system Maven required):
+
+```bash
+./mvnw -B package
+java -jar target/*-SNAPSHOT.jar
+```
+
+- Run the app in development mode:
+
+```bash
+./mvnw spring-boot:run
+```
+
+- Docker (build + run):
+
+```bash
+docker build -t springuma:latest .
+docker run --rm -p 8080:8080 springuma:latest
+```
+
+- Kubernetes (apply provided manifests):
+
+```bash
+kubectl apply -f deployment.yml
+kubectl apply -f service.yml
+```
+
 ---
 
 ## Running the application
@@ -61,8 +94,9 @@ No external database required — H2 in-memory is used for tests.
 ./mvnw spring-boot:run
 ```
 
-API available at `http://localhost:8080`.  
-Swagger UI: `http://localhost:8080/swagger-ui.html`
+API available at `http://localhost:8080`.
+Swagger UI (SpringDoc): `http://localhost:8080/swagger-ui/index.html`  
+OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
 ### Main endpoints
 
