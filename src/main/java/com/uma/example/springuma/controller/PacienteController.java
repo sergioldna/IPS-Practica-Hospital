@@ -2,7 +2,8 @@ package com.uma.example.springuma.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,16 +16,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uma.example.springuma.model.Paciente;
 import com.uma.example.springuma.model.PacienteService;
+import com.uma.example.springuma.model.ResourceNotFoundException;
 
 @RestController
 public class PacienteController {
 
-    @Autowired
-    private PacienteService pacienteService;
+    private static final Logger log = LoggerFactory.getLogger(PacienteController.class);
+
+    private final PacienteService pacienteService;
+
+    public PacienteController(PacienteService pacienteService) {
+        this.pacienteService = pacienteService;
+    }
 
     @GetMapping("/paciente/{id}")
-    public Paciente getPaciente(@PathVariable("id") Long id) {
-        return pacienteService.getPaciente(id);
+    public ResponseEntity<Paciente> getPaciente(@PathVariable("id") Long id) {
+        try {
+            return ResponseEntity.ok(pacienteService.getPaciente(id));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/paciente/medico/{id}")
@@ -38,7 +49,8 @@ public class PacienteController {
             pacienteService.addPaciente(paciente);
             return ResponseEntity.status(201).build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("El paciente ya existe");
+            log.error("Failed to save paciente", e);
+            return ResponseEntity.status(409).body("El paciente ya existe");
         }
     }
 
@@ -48,7 +60,7 @@ public class PacienteController {
             pacienteService.updatePaciente(paciente);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error updating paciente", e);
             return ResponseEntity.internalServerError().body("Error al actualizar el paciente ");
         }
     }
@@ -57,14 +69,13 @@ public class PacienteController {
     public ResponseEntity<?> deleteCuenta(@PathVariable("id") Long id) {
         try {
             Paciente paciente = pacienteService.getPaciente(id);
-            System.out.println(paciente);
-            if (paciente != null) {
-                pacienteService.removePaciente(paciente);
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.internalServerError().build();
-            }
+            log.debug("Deleting paciente: {}", paciente);
+            pacienteService.removePaciente(paciente);
+            return ResponseEntity.ok().build();
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
+            log.error("Error deleting paciente", e);
             return ResponseEntity.internalServerError().build();
         }
     }
