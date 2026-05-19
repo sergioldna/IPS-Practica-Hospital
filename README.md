@@ -1,6 +1,7 @@
 # SpringUMA — Medical Records System
 
 ![Build Status](https://github.com/sergioldna/IPS-Practica-Hospital/actions/workflows/ci.yml/badge.svg)
+![Practica 7 CI](https://github.com/sergioldna/IPS-Practica-Hospital/actions/workflows/practica7.yml/badge.svg)
 ![Cobertura Jacoco](.github/badges/jacoco.svg)
 ![License](https://img.shields.io/github/license/sergioldna/IPS-Practica-Hospital.svg)
 
