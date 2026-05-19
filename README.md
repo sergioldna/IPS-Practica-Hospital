@@ -1,6 +1,8 @@
 # SpringUMA — Medical Records System
 
+![Build Status](https://github.com/sergioldna/IPS-Practica-Hospital/actions/workflows/ci.yml/badge.svg)
 ![Cobertura Jacoco](.github/badges/jacoco.svg)
+![License](https://img.shields.io/github/license/sergioldna/IPS-Practica-Hospital.svg)
 
 CI/CD workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
@@ -156,3 +158,37 @@ The workflow in `.github/workflows/ci.yml` triggers on every **push** and **pull
 - JUnit 5 · MockMvc · WebTestClient
 - SpringDoc OpenAPI (Swagger UI)
 - Maven · GitHub Actions
+
+---
+
+## Troubleshooting
+
+- **JaCoCo instrumentation errors / Unsupported class file major version:** al ejecutar tests localmente puede aparecer una excepción de instrumentación de JaCoCo (incompatibilidad con la versión del JDK). Opciones:
+    - **Actualizar JaCoCo** en `pom.xml` a una versión compatible con el JDK que usas (recomendado para CI y local).
+    - **Ejecutar tests con un JDK compatible** (configurar Maven Toolchains o usar la versión objetivo del proyecto).
+    - **Solución temporal local:** omitir la instrumentación de JaCoCo al ejecutar tests localmente:
+
+```bash
+mvn test -Djacoco.skip=true
+```
+
+    Esto evitará el agente de cobertura localmente mientras se actualiza la herramienta.
+
+---
+
+## Contributing (short)
+
+- Create a topic branch named `docs/...` or `feat/...` according to the change.
+- Run the test suite before committing:
+
+```bash
+./mvnw test
+```
+
+- Commit messages follow Conventional Commits. Example:
+
+```bash
+git commit -m "docs: update README with troubleshooting and badges"
+```
+
+- See also `AGENTS.md` and `GIT_GUIDELINES.md` for more context.
