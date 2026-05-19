@@ -7,33 +7,28 @@ import org.springframework.web.multipart.MultipartFile;
 import com.uma.example.springuma.utils.ImageUtils;
 
 import java.io.IOException;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class ImagenService {
 
+    private final RepositoryImagen repositoryImagen;
+
     @Autowired
-    private RepositoryImagen repositoryImagen;
+    public ImagenService(RepositoryImagen repositoryImagen) {
+        this.repositoryImagen = repositoryImagen;
+    }
 
     public List<Imagen> getAllImagenes() {
         return repositoryImagen.findAll();
     }
 
     public Imagen getImagen(Long id) {
-        return repositoryImagen.getReferenceById(id);
+        return repositoryImagen.findById(id).orElseThrow(() -> new ResourceNotFoundException("Imagen not found: " + id));
     }
 
     public String getNewPrediccion(Long id) throws IOException, Exception {
-        /* API Deprecated
-        Map<String, Double> response = 
-        ImagenAPIPredictor.query(ImageUtils.decompressImage(repositoryImagen.getReferenceById(id).getFile_content()));
-        System.out.println("resp");
-        System.out.println( response);
-        double score_0 = response.get("LABEL_0");
-        double score_1 = response.get("LABEL_1");
-        System.out.println("resp");
-        System.out.println( response);*/
         double score_0 = Math.random();
         double score_1 = Math.random();
         String resulString;
@@ -68,9 +63,9 @@ public class ImagenService {
     public String uploadImage(MultipartFile file, Paciente paciente) throws IOException {
         Imagen imagen = new Imagen();
         imagen.setNombre(file.getOriginalFilename());
-        imagen.setFile_content(ImageUtils.compressImage(file.getBytes()));
+        imagen.setFileContent(ImageUtils.compressImage(file.getBytes()));
         imagen.setPaciente(paciente);
-        imagen.setFecha(Calendar.getInstance());
+        imagen.setFecha(LocalDateTime.now());
         imagen = repositoryImagen.saveAndFlush(imagen);
         if (imagen != null) {
             return "{\"response\" : \"file uploaded successfully : " + file.getOriginalFilename() + "\"}";
@@ -78,9 +73,9 @@ public class ImagenService {
         return null;
     }
 
-    public byte[] downloadImage(long id) {
-        Imagen dbImageData = repositoryImagen.getReferenceById(id);
-        byte[] images = ImageUtils.decompressImage(dbImageData.getFile_content());
+    public byte[] downloadImage(long id) throws IOException {
+        Imagen dbImageData = repositoryImagen.findById(id).orElseThrow(() -> new ResourceNotFoundException("Imagen not found: " + id));
+        byte[] images = ImageUtils.decompressImage(dbImageData.getFileContent());
         return images;
     }
 

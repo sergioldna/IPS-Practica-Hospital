@@ -32,6 +32,12 @@ jobs:
       - name: Dar permisos a mvnw
         run: chmod +x mvnw
 
+      - name: Run formatter check
+        run: ./mvnw -B com.coveo:fmt-maven-plugin:2.15:validate
+
+      - name: Run SpotBugs check
+        run: ./mvnw -B com.github.spotbugs:spotbugs-maven-plugin:4.7.3:check || true
+
       - name: Compilar el proyecto
         run: ./mvnw compile --no-transfer-progress
 

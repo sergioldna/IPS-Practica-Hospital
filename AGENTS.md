@@ -1,53 +1,43 @@
-# AGENTS
+# AGENTS for IPS-Practica-Hotel-IA
 
-Resumen de agentes recomendados para este proyecto Java Spring (Maven, Docker, Kubernetes).
+Este documento describe agentes recomendados y cómo interactuar con este proyecto.
 
-- **Build & Test Agent**: Ejecuta compilación Maven y pruebas unitarias.
-  - Trigger: push/PR en ramas de desarrollo/producción.
-  - Permisos: checkout, Java/Maven, almacenamiento de artefactos.
-  - Acciones: `./mvnw -B clean verify`, generar informe JaCoCo.
-  - Archivos relevantes: [pom.xml](pom.xml), [mvnw](mvnw), [src](src/), [target](target/).
+**Resumen**
+- **Propósito:** Aplicación Java Spring Boot (Maven) con contenedorización y manifiestos de despliegue.
+- **Lenguaje:** Java (Maven). **Build:** `./mvnw` / `mvn`.
 
-- **Docker Build & Push Agent**: Construye imagen Docker y la publica en registro.
-  - Trigger: tag de release o push en rama `main`.
-  - Permisos: secretos del registro (`REGISTRY_USER`, `REGISTRY_TOKEN`).
-  - Acciones: `docker build -f Dockerfile -t $IMAGE:$TAG .` y `docker push`.
-  - Archivos relevantes: [Dockerfile](Dockerfile), artefacto JAR en [target/](target/).
+**Archivos clave**
+- **Proyecto Maven:** [pom.xml](pom.xml)
+- **Código fuente:** [src/main/java](src/main/java)
+- **Recursos:** [src/main/resources/application.properties](src/main/resources/application.properties)
+- **Docker:** [Dockerfile](Dockerfile)
+- **Kubernetes / despliegue:** [deployment.yml](deployment.yml), [service.yml](service.yml), [runner-permissions.yml](runner-permissions.yml)
 
-- **Kubernetes Deploy Agent**: Despliega la aplicación en clúster k8s.
-  - Trigger: push a `main` con imagen publicada o release.
-  - Permisos: `kubeconfig` con acceso a namespace/roles adecuados.
-  - Acciones: `kubectl apply -f deployment.yml`, `kubectl apply -f service.yml`.
-  - Archivos relevantes: [deployment.yml](deployment.yml), [service.yml](service.yml), [runner-rolebinding.yml](runner-rolebinding.yml), [runner-permissions.yml](runner-permissions.yml).
+**Comandos útiles**
+- **Compilar y empaquetar:** `./mvnw clean package`
+- **Ejecutar localmente:** `./mvnw spring-boot:run`
+- **Tests unitarios:** `./mvnw test`
+- **Tests de integración / verify:** `./mvnw verify`
+- **Construir Docker:** `docker build -t <image>:<tag> . -f Dockerfile`
+- **Aplicar manifiestos K8s:** `kubectl apply -f deployment.yml`
 
-- **Integration / E2E Test Agent**: Ejecuta pruebas de integración y pruebas de contrato.
-  - Trigger: merge en rama de integración o pipeline programado.
-  - Permisos: entorno de test, base de datos o mocks.
-  - Acciones: `./mvnw -B verify -Pintegration` (o configuración equivalente), recopilar `target/failsafe-reports`.
-  - Archivos relevantes: [target/failsafe-reports/](target/failsafe-reports/).
+**Agentes recomendados**
+- **Explore**: lectura y mapeo del repo para responder preguntas de arquitectura. Trigger: manual. Acciones: `read_file`, `file_search`.
+- **BuildAndTest**: ejecuta `./mvnw clean package`, recoge fallos de compilación y test, y propone correcciones. Trigger: PR o manual. Acciones: ejecutar pruebas, analizar reports (`target/surefire-reports`, `target/failsafe-reports`).
+- **DependencyBump**: detecta dependencias desactualizadas en `pom.xml`, propone cambios y crea PRs de actualización. Trigger: programado o a demanda. Acciones: editar `pom.xml`, ejecutar `./mvnw -U versions:display-dependency-updates`.
+- **DockerizeAndPublish**: construye la imagen desde `Dockerfile`, etiqueta y sube a registry. Trigger: en release o PR. Acciones: `docker build`, `docker push`.
+- **K8sDeploy**: valida manifests YAML y despliega en un cluster de prueba. Trigger: PR merge o manual. Acciones: validar `kubectl apply --dry-run=client`, `kubectl rollout status`.
+- **CIFixAssistant**: revisa workflows, sugiere mejoras en `deployment.yml` (si es CI) y en permisos de runner. Trigger: PR en `.github/workflows` o manual.
+- **DocsUpdater**: mantiene `README.md`, `CONTRIBUTING.md` y agrega secciones sobre cómo ejecutar la aplicación localmente y en Docker.
 
-- **Coverage & Report Agent**: Publica informes de cobertura (JaCoCo) y artefactos de site.
-  - Trigger: tras ejecutar Build & Test.
-  - Acciones: subir `target/site/jacoco/` a almacenamiento o servicio de cobertura.
-  - Archivos relevantes: [target/site/jacoco/](target/site/jacoco/).
+**Ejemplos de prompts para agentes**
+- "Build the project, run tests, and summarize failures with stack traces and affected classes."
+- "Check for outdated Maven dependencies and propose a minimal set of version bumps with rationale."
+- "Build Docker image, run container locally and confirm the app responds on the configured port."
 
-- **Dependency & Security Scan Agent**: Auditoría de dependencias y escaneo de contenedores.
-  - Trigger: push a cualquier rama o programación diaria.
-  - Herramientas sugeridas: OWASP Dependency-Check, Snyk, Trivy.
-  - Archivos relevantes: [pom.xml](pom.xml), [Dockerfile](Dockerfile).
+**Convenciones y alcance**
+- **No tocar:** cambios de diseño sin pedir PR de revisión; secrets y credenciales no deben añadirse en texto plano.
+- **Formato de commits:** seguir convenciones del repositorio (si existen).
+- **Acceso a infra:** los agentes que despliegan necesitan credenciales externas; pedir aprobación manual antes de ejecutar pushes o deploys.
 
-- **Release Agent**: Bump de versión, tag, build y publicación de release.
-  - Trigger: manual (workflow_dispatch) o al crear un release en GitHub.
-  - Acciones: actualizar `pom.xml`, crear tag, ejecutar build y publicar artefactos.
-
-- **Docs / Javadoc Agent**: Genera documentación del proyecto y la publica como artifact o Pages.
-  - Trigger: push en rama `main` o manual.
-  - Acciones: `./mvnw javadoc:javadoc site` y publicar `target/site`.
-
-- **Developer Assistant Agent**: Agente conversacional para ayudar con código, tests y despliegues.
-  - Uso: preguntas ad-hoc, sugerencias de refactor, inspección de tests fallidos.
-  - Acciones: buscar en `src/`, `test/`, `pom.xml`, y sugerir parches o comandos.
-
-Notas finales:
-- Los agentes pueden implementarse como GitHub Actions reutilizables o como flujos independientes.
-- ¿Quieres que genere workflows de GitHub Actions para algunos de estos agentes? Indica cuáles.
+Si quieres, creo una rama/PR con este fichero y ejecuto el agente `BuildAndTest` para validar la compilación aquí mismo.

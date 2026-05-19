@@ -8,34 +8,31 @@ import org.springframework.stereotype.Service;
 @Service
 public class PacienteService {
 
+    private final RepositoryPaciente repositoryPaciente;
+
     @Autowired
-    RepositoryPaciente repositoryPaciente; 
+    public PacienteService(RepositoryPaciente repositoryPaciente) {
+        this.repositoryPaciente = repositoryPaciente;
+    }
 
     public List<Paciente> getAllPacientes() {
-        return repositoryPaciente.findAll(); 
+        return repositoryPaciente.findAll();
     }
 
     public Paciente getPaciente(Long id) {
-        return repositoryPaciente.getReferenceById(id); 
+        return repositoryPaciente.findById(id).orElseThrow(() -> new ResourceNotFoundException("Paciente not found: " + id));
     }
 
-    public Paciente addPaciente(Paciente p) {
-        return repositoryPaciente.saveAndFlush(p); 
+    public Paciente addPaciente(Paciente paciente) {
+        return repositoryPaciente.saveAndFlush(paciente);
     }
 
-    public void updatePaciente(Paciente p) {
-        /*Paciente paciente = repositoryPaciente.getReferenceById(p.getId());
-        // Aquí podrías actualizar los campos específicos del paciente
-        paciente.setNombre(p.getNombre());
-        paciente.setEdad(p.getEdad());
-        paciente.setCita(p.getCita());
-        paciente.setDni(p.getDni());
-        paciente.setMedico(p.getMedico());*/
-        repositoryPaciente.save(p); // Guardamos el paciente actualizado
+    public void updatePaciente(Paciente paciente) {
+        repositoryPaciente.save(paciente);
     }
 
-    public void removePaciente(Paciente p) {
-        repositoryPaciente.delete(p); 
+    public void removePaciente(Paciente paciente) {
+        repositoryPaciente.delete(paciente);
     }
 
     public void removePacienteID(Long id) {

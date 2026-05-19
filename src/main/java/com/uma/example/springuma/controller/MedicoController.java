@@ -1,6 +1,7 @@
 package com.uma.example.springuma.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,16 +14,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uma.example.springuma.model.Medico;
 import com.uma.example.springuma.model.MedicoService;
+import com.uma.example.springuma.model.ResourceNotFoundException;
 
 @RestController
 public class MedicoController {
 
-    @Autowired
-    private MedicoService medicoService;
+    private static final Logger log = LoggerFactory.getLogger(MedicoController.class);
+
+    private final MedicoService medicoService;
+
+    public MedicoController(MedicoService medicoService) {
+        this.medicoService = medicoService;
+    }
 
     @GetMapping("/medico/{id}")
-    public Medico getMedico(@PathVariable("id") Long id) {
-        return medicoService.getMedico(id);
+    public ResponseEntity<Medico> getMedico(@PathVariable("id") Long id) {
+        try {
+            return ResponseEntity.ok(medicoService.getMedico(id));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping(value = "/medico", consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -31,7 +42,8 @@ public class MedicoController {
             medicoService.addMedico(medico);
             return ResponseEntity.status(201).build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("El medico ya existe");
+            log.error("Failed to save medico", e);
+            return ResponseEntity.status(409).body("El medico ya existe");
         }
     }
 
@@ -41,7 +53,7 @@ public class MedicoController {
             medicoService.updateMedico(medico);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error updating medico", e);
             return ResponseEntity.internalServerError().body("Error al actualizar el medico");
         }
     }
@@ -50,16 +62,13 @@ public class MedicoController {
     public ResponseEntity<?> deleteMedico(@PathVariable("id") Long id) {
         try {
             Medico medico = medicoService.getMedico(id);
-            System.out.println(medico);
-            if (medico != null) {
-                medicoService.removeMedicoID(id);
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.internalServerError().build();
-            }
-
+            log.debug("Deleting medico: {}", medico);
+            medicoService.removeMedicoID(id);
+            return ResponseEntity.ok().build();
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error deleting medico", e);
             return ResponseEntity.internalServerError().body("Error al eliminar el medico");
         }
     }
