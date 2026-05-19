@@ -1,0 +1,80 @@
+name: Practica 7 CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Formatter validate
+        run: ./mvnw -B com.coveo:fmt-maven-plugin:2.15:validate
+
+  unit-tests:
+    name: Unit tests (Surefire)
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run unit tests
+        run: ./mvnw -B -DskipITs=true test
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
+
+  integration-tests:
+    name: Integration tests (Failsafe + JaCoCo)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run integration tests and generate coverage
+        run: ./mvnw -B -DskipTests=false verify
+      - name: Upload jacoco report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+  quality:
+    name: Static analysis (SpotBugs)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Run SpotBugs
+        run: |
+          ./mvnw -B com.github.spotbugs:spotbugs-maven-plugin:4.7.3:check || true
+      - name: Upload spotbugs xml
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
