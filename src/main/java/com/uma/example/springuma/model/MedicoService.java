@@ -8,27 +8,31 @@ import org.springframework.stereotype.Service;
 @Service
 public class MedicoService {
 
+    private final RepositoryMedico repositoryMedico;
+
     @Autowired
-    RepositoryMedico repositoryMedico;
+    public MedicoService(RepositoryMedico repositoryMedico) {
+        this.repositoryMedico = repositoryMedico;
+    }
 
     public List<Medico> getAllMedicos() {
         return repositoryMedico.findAll();
     }
 
     public Medico getMedico(Long id) {
-        return repositoryMedico.getReferenceById(id);
+        return repositoryMedico.findById(id).orElseThrow(() -> new ResourceNotFoundException("Medico not found: " + id));
     }
 
-    public Medico addMedico(Medico m) {
-        return repositoryMedico.saveAndFlush(m);
+    public Medico addMedico(Medico medico) {
+        return repositoryMedico.saveAndFlush(medico);
     }
 
-    public void updateMedico(Medico m) {
-        repositoryMedico.save(m);
+    public void updateMedico(Medico medico) {
+        repositoryMedico.save(medico);
     }
 
-    public void removeMedico(Medico m) {
-        repositoryMedico.delete(m);
+    public void removeMedico(Medico medico) {
+        repositoryMedico.delete(medico);
     }
 
     public void removeMedicoID(Long id) {
